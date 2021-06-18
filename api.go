@@ -161,6 +161,82 @@ func (da *Cedar) Get(key []byte) (value interface{}, err error) {
 	return nil, ErrNoValue
 }
 
+func (da *Cedar) GetByNid(nid int) (value interface{}, err error) {
+	vk, err := da.vKeyOf(nid)
+	if err != nil {
+		return nil, ErrNoValue
+	}
+	if v, ok := da.vals[vk]; ok {
+		return v.Value, nil
+	}
+	return nil, ErrNoValue
+}
+
+// Match multiple subsequence in seq and return tokens
+func (da *Cedar) MatchWildcard(seq []byte, nid int, cb func(nid int, key []byte, value interface{})) {
+	wildcard := -1
+	e := len(seq) - 1
+	if nid > 0 {
+		from := da.array[nid].Check
+		base := da.array[from].base()
+		if byte(nid^base) == '*' {
+			wildcard = nid
+		}
+
+	}
+
+	for i, b := range seq {
+
+		// does the current node has a b as child?
+		if da.hasLabel(nid, b) {
+			// if yes, double check the wildcard for the same node and
+			// launch the MatchWildcard for new branch
+			if wildcard, _ := da.child(nid, '*'); wildcard > -1 {
+				da.MatchWildcard(seq[i+1:], wildcard, cb)
+			}
+			nid, _ = da.child(nid, b)
+			wildcard = -1
+		} else {
+
+			// if node doesn't contain b
+			if wildcard > -1 {
+				// but in the previous step we found the wildcard
+				// keep the wildcard' nid (node id)
+				nid = wildcard
+				if i != e {
+					continue
+				}
+				// if node doesn't contain b and we don't have the wildcard
+				// let's find it
+			} else if wildcard, _ = da.child(nid, '*'); wildcard == -1 {
+				break
+			} else {
+				// if we found a wildcard, leave the wildcard as the new nid
+				nid = wildcard
+			}
+		}
+
+		// if it's end of seq or nid contains wildcard
+		// check does this node contain any data or not
+		if i == e || nid == wildcard {
+			if v, err := da.GetByNid(nid); nil == err {
+
+				// if we found data, then it's success
+				k, _ := da.Key(nid)
+				cb(nid, k, v)
+
+				// if current node doesn't have a child, break the loop
+				// for example, rule: "cars*" and seq: "cars for sale"
+				if !da.hasChild(nid) {
+					break
+				}
+			}
+
+		}
+		continue
+	}
+}
+
 // PrefixMatch returns a list of at most `num` nodes which match the prefix of the key.
 // If `num` is 0, it returns all matches.
 // For example, if the following keys were inserted:

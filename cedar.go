@@ -484,6 +484,23 @@ func runeOfValue(v uint16) rune {
 	return rune(v)
 }
 
+func (da *Cedar) hasChild(id int) bool {
+	return da.info[id].Child != 0
+}
+
+func (da *Cedar) hasData(id int) bool {
+
+	vk, err := da.vKeyOf(id)
+	if err != nil {
+		return false
+	}
+	if _, ok := da.vals[vk]; ok {
+		return true
+	}
+
+	return false
+}
+
 func (da *Cedar) isEnd(id int) bool {
 	if da.info[id].End {
 		return true

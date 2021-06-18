@@ -11,6 +11,27 @@ import (
 	"time"
 )
 
+func TestWildcardMatcher(t *testing.T) {
+	fmt.Printf("\ntesting wildcard case...\n")
+	m := NewCedar()
+	rules := []string{
+		"ca",
+		"car",
+		"c*rs for*",
+		"c*rs*",
+	}
+
+	for i, word := range rules {
+		m.Insert([]byte(word), i)
+	}
+
+	seq := []byte("cars for sale")
+	fmt.Printf("searching %s\n", string(seq))
+	m.MatchWildcard(seq, 0, func(nid int, key []byte, value interface{}) {
+		fmt.Printf("Matched rule: %q, value = %v\n", key, value)
+	})
+}
+
 func TestDumpMatcher(t *testing.T) {
 	fmt.Printf("\ntesting in simple case...\n")
 	m := NewMatcher()
