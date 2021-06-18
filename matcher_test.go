@@ -16,16 +16,21 @@ func TestWildcardMatcher(t *testing.T) {
 	m := NewCedar()
 	rules := []string{
 		"ca",
-		"car",
-		"c*rs for*",
-		"c*rs*",
+		"*cars", // matched
+		"my broken cars",
+		"cars*", // matched
+		"cars and bicycles",
+		"ca*rs",
+		"cars",  // matched
+		"c*s",   // matched
+		"c*rs*", // matched
 	}
 
 	for i, word := range rules {
 		m.Insert([]byte(word), i)
 	}
 
-	seq := []byte("cars for sale")
+	seq := []byte("cars")
 	fmt.Printf("searching %s\n", string(seq))
 	m.MatchWildcard(seq, 0, func(nid int, key []byte, value interface{}) {
 		fmt.Printf("Matched rule: %q, value = %v\n", key, value)

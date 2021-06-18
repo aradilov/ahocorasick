@@ -172,30 +172,68 @@ func (da *Cedar) GetByNid(nid int) (value interface{}, err error) {
 	return nil, ErrNoValue
 }
 
+func (da *Cedar) GetLabel(nid int) byte {
+	from := da.array[nid].Check
+	base := da.array[from].base()
+
+	return byte(nid ^ base)
+}
+
 // Match multiple subsequence in seq and return tokens
+// Wildcard in the end (or start) of the seq means zero or any amount of symbols
+// Wildcard in the middle of the seq means one symbol or more
 func (da *Cedar) MatchWildcard(seq []byte, nid int, cb func(nid int, key []byte, value interface{})) {
 	wildcard := -1
 	e := len(seq) - 1
-	if nid > 0 {
-		from := da.array[nid].Check
-		base := da.array[from].base()
-		if byte(nid^base) == '*' {
-			wildcard = nid
-		}
 
+	if nid > 0 && da.GetLabel(nid) == '*' {
+		wildcard = nid
 	}
 
+	var eof bool
 	for i, b := range seq {
-
+		eof = i == e
 		// does the current node has a b as child?
 		if da.hasLabel(nid, b) {
-			// if yes, double check the wildcard for the same node and
-			// launch the MatchWildcard for new branch
-			if wildcard, _ := da.child(nid, '*'); wildcard > -1 {
-				da.MatchWildcard(seq[i+1:], wildcard, cb)
+			if b != '*' {
+				// if yes and b != '*' try to find the wildcard for the same node
+				//and launch the MatchWildcard for the new branch
+				if wildcard, _ := da.child(nid, '*'); wildcard > -1 {
+					if i == 0 {
+						da.MatchWildcard(seq, wildcard, cb)
+					} else {
+						da.MatchWildcard(seq[i+1:], wildcard, cb)
+					}
+
+				}
 			}
+
 			nid, _ = da.child(nid, b)
-			wildcard = -1
+
+			// if it's EOF and we haven't reached the leaf with data
+			// check the next think: does the current node has a child *?
+			// Maybe this child is leaf with data?
+			if eof && !da.hasData(nid) {
+				if wildcard, _ = da.child(nid, '*'); wildcard != -1 {
+					nid = wildcard
+				} else {
+					break
+				}
+			}
+
+			if wildcard != -1 {
+				if !eof {
+					// if we found a new node which is not *
+					// but we have found the wildcard in the previous step
+					// launch the MatchWildcard for the old rule with *
+					// example: we have 2 rules: c*s and c*rs, seq = cars
+					// both rules are matched but rule c*rs is stronger than c*s
+					// we must keep the matching process for the c*s
+					da.MatchWildcard(seq[i+1:], wildcard, cb)
+				}
+				wildcard = -1
+			}
+
 		} else {
 
 			// if node doesn't contain b
@@ -218,17 +256,28 @@ func (da *Cedar) MatchWildcard(seq []byte, nid int, cb func(nid int, key []byte,
 
 		// if it's end of seq or nid contains wildcard
 		// check does this node contain any data or not
-		if i == e || nid == wildcard {
-			if v, err := da.GetByNid(nid); nil == err {
+		if eof || nid == wildcard {
 
-				// if we found data, then it's success
+			if v, err := da.GetByNid(nid); nil == err {
 				k, _ := da.Key(nid)
 				cb(nid, k, v)
+			}
 
+			if !eof {
 				// if current node doesn't have a child, break the loop
 				// for example, rule: "cars*" and seq: "cars for sale"
 				if !da.hasChild(nid) {
 					break
+				}
+			} else if nid != wildcard {
+				// for example we have 2 rules: "cars*", "cars" and seq: "cars"
+				// current node is 's' and this is EOF
+				// we should follow both rules
+				if wildcard, _ = da.child(nid, '*'); wildcard > -1 {
+					if v, err := da.GetByNid(wildcard); nil == err {
+						k, _ := da.Key(wildcard)
+						cb(wildcard, k, v)
+					}
 				}
 			}
 
