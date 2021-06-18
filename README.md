@@ -1,5 +1,5 @@
 # ahocorasick 
-[![Go Report Card](https://goreportcard.com/badge/github.com/iohub/ahocorasick?style=flat-square)](https://goreportcard.com/report/github.com/iohub/ahocorasick) [![GoCover](http://gocover.io/_badge/github.com/iohub/ahocorasick)](http://gocover.io/github.com/iohub/ahocorasick) [![GoDoc](https://godoc.org/github.com/iohub/ahocorasick?status.svg)](https://godoc.org/github.com/iohub/ahocorasick)
+[![Go Report Card](https://goreportcard.com/badge/github.com/aradilov/ahocorasick?style=flat-square)](https://goreportcard.com/report/github.com/aradilov/ahocorasick) [![GoCover](http://gocover.io/_badge/github.com/aradilov/ahocorasick)](http://gocover.io/github.com/aradilov/ahocorasick) [![GoDoc](https://godoc.org/github.com/aradilov/ahocorasick?status.svg)](https://godoc.org/github.com/aradilov/ahocorasick)
 
 <!--  [![Build Status](https://semaphoreci.com/api/v1/iohub/ahocorasick/branches/master/badge.svg)](https://semaphoreci.com/iohub/ahocorasick) -->
 
@@ -36,15 +36,15 @@ dot -Tpng -o out.png trie.gv
 # example: words {"she", "he", "her", "hers"}
 ```
 * trie 
-<img src="https://github.com/iohub/ahocorasick/blob/master/pictures/trie.png" alt="GitHub" /> 
+<img src="https://github.com/aradilov/ahocorasick/blob/master/pictures/trie.png" alt="GitHub" /> 
 
 * aho-corasick 
-<img src="https://github.com/iohub/ahocorasick/blob/master/pictures/dfa.png" alt="GitHub" />
+<img src="https://github.com/aradilov/ahocorasick/blob/master/pictures/dfa.png" alt="GitHub" />
 
 
 ## Install
 ```
-go get github.com/iohub/ahocorasick
+go get github.com/aradilov/ahocorasick
 ```
 
 ## Usage
@@ -57,7 +57,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/iohub/ahocorasick"
+	"github.com/aradilov/ahocorasick"
 )
 
 func main() {
@@ -112,7 +112,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/iohub/ahocorasick"
+	"github.com/aradilov/ahocorasick"
 )
 
 func main() {
@@ -195,15 +195,15 @@ key:解放军 value:287381
 
 ## Benchmark
 
-ahocorasick golang implementation: [`cloudflare`](https://github.com/cloudflare/ahocorasick) [`anknown`](https://github.com/anknown/ahocorasick) [`iohub`](https://github.com/iohub/ahocorasick)
+ahocorasick golang implementation: [`cloudflare`](https://github.com/cloudflare/ahocorasick) [`anknown`](https://github.com/anknown/ahocorasick) [`iohub`](https://github.com/aradilov/ahocorasick)
 
-  ![image](https://github.com/iohub/ahocorasick/blob/master/pictures/merge_from_ofoct.jpg)
+  ![image](https://github.com/aradilov/ahocorasick/blob/master/pictures/merge_from_ofoct.jpg)
 
 
 How to run benchmark
 
 ```
-git clone https://github.com/iohub/ahocorasick
+git clone https://github.com/aradilov/ahocorasick
 cd benchmark
 go get -u -v
 go build .

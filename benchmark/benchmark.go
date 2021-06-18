@@ -16,8 +16,8 @@ import (
 	_ "net/http/pprof"
 
 	goahocorasick "github.com/anknown/ahocorasick"
+	cedar "github.com/aradilov/ahocorasick"
 	"github.com/cloudflare/ahocorasick"
-	cedar "github.com/iohub/ahocorasick"
 )
 
 const zhDict = "./cn/dictionary.txt"
