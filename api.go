@@ -106,11 +106,18 @@ func (da *Cedar) Update(key []byte, value int) error {
 
 // Delete removes a key-value pair from the cedar.
 // It will return ErrNoPath, if the key has not been added.
-func (da *Cedar) Delete(key []byte) error {
+func (da *Cedar) Delete(key []byte) (err error) {
 	// if the path does not exist, or the end is not a leaf, nothing to delete
 	to, err := da.Jump(key, 0)
 	if err != nil {
-		return ErrNoPath
+		return err
+	}
+	vk, err := da.vKeyOf(to)
+	if err != nil {
+		return err
+	}
+	if _, ok := da.vals[vk]; !ok {
+		return ErrNoValue
 	}
 
 	if da.array[to].Value < 0 {
@@ -138,7 +145,7 @@ func (da *Cedar) Delete(key []byte) error {
 		// then check its parent node
 		to = from
 	}
-	return nil
+	return
 }
 
 // Get returns the value associated with the given `key`.
